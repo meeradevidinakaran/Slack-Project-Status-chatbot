@@ -20,11 +20,13 @@ Path : assets/Slack Project Status Chat bot.mp4
 link: 
 # System Design
 Path: assets/SystemDesign.png
+![System Design](assets/SlackChatbotSystemDesign.png)
 
 # Setup_ Instructions
+![SetUp_Instructions](docs/SetUp_Instructions.md)
 
 # Scaling Strategies 
-
+![Scaling_Strategy](docs/Scaling_Strategy.md)
 
 
      
