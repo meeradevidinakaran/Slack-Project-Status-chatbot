@@ -1,0 +1,444 @@
+{
+  "name": "Slack Project Status Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "slack-project-bot",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "127914e2-2f33-435e-bc1c-964cd748a94f",
+      "name": "Slack Event Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        336
+      ],
+      "webhookId": "617121b4-bc3d-4203-a019-9b48bca156c4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "url_verification",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b0bb5465-3173-4288-b115-f2bbbbe29628",
+      "name": "Handle URL Verification",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ challenge: $json.body.challenge }) }}",
+        "options": {}
+      },
+      "id": "fa805186-4be7-4f12-a9be-2d831937ad27",
+      "name": "Respond to Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        48,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.event.bot_id }}",
+              "operation": "isEmpty"
+            },
+            {
+              "value1": "={{ $json.body.event.subtype }}",
+              "operation": "isEmpty"
+            },
+            {
+              "value1": "={{ $json.headers['x-slack-retry-num'] }}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "id": "03026a1a-7321-47a1-a1a8-bd9a0df13ada",
+      "name": "Ignore Bot Messages",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [
+        48,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1ymAxDl0Gh6arzaJH0V1mjiaM3JHBE1GwVPal5zqjaS4/edit?gid=1896195327#gid=1896195327",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1896195327,
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ymAxDl0Gh6arzaJH0V1mjiaM3JHBE1GwVPal5zqjaS4/edit#gid=1896195327"
+        },
+        "options": {}
+      },
+      "id": "93b4d9df-a505-4987-9490-b4251310289e",
+      "name": "Fetch Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        256,
+        384
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vCAlXTxIK9lvy6Hf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const slackEvent = $('Ignore Bot Messages').item.json.body.event;\nconst sheetRows = $('Fetch Google Sheet').all().map(i => i.json);\nreturn [{\n  json: {\n    userQuestion: slackEvent.text,\n    channelId: slackEvent.channel,\n    threadTs: slackEvent.ts,\n    userId: slackEvent.user,\n    sheetData: JSON.stringify(sheetRows, null, 2)\n  }\n}];"
+      },
+      "id": "503c9570-43ee-4851-b7c5-2948daf58234",
+      "name": "Format Sheet Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "text": "=The user asked: {{ $json.userQuestion }}\n\nHere is the current project data:\n{{ $json.sheetData }}",
+        "options": {
+          "systemMessage": "You are a project status assistant for a team. You have access to a project tracker with the following fields: Project Name, Owner, Status, Priority, Phase, Due Date, Last Updated, and Notes.\n\nYour job is to answer questions about project status clearly and concisely for a Slack audience.\n\nRules:\n- For specific project lookups, return all relevant fields formatted as a Slack message\n- For broad queries (\"what's at risk?\", \"what's due this week?\"), summarize matching projects in a bulleted list\n- If no projects match, say so clearly\n- Never make up data — only use what's in the sheet\n- Keep responses under 400 words\n- Use Slack markdown: bold with *text*, bullets with •\n- Do not include the raw JSON in your response"
+        }
+      },
+      "id": "2915bf58-e44f-4f1d-aba0-8b5ff9f31d5e",
+      "name": "Project Status Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1,
+      "position": [
+        704,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BJ7TC8XFV",
+          "mode": "id"
+        },
+        "text": "={{ $json.output }}",
+        "otherOptions": {}
+      },
+      "id": "dfa7bf02-60ad-4fc4-8bf0-b58a06751357",
+      "name": "Reply in Thread",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        400
+      ],
+      "webhookId": "b26861bf-1d58-4ab0-a000-acf98a1dbfdd",
+      "credentials": {
+        "slackApi": {
+          "id": "nRqJc82sbXeAY4QB",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {}
+      },
+      "id": "ce9dca24-a98f-4447-a4b9-8e2a894a85da",
+      "name": "Respond to Slack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        400
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b59ea782-594e-4e8c-8e81-8eb4880976b6",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BJAS6D6CV",
+          "mode": "id"
+        },
+        "text": "=*Workflow Error* in `{{ $json.workflow.name }}` >{{ $json.execution.error.message }} _{{ $json.execution.startedAt }}_",
+        "otherOptions": {}
+      },
+      "id": "30327b40-ff9f-4831-88dd-a167e0a0173d",
+      "name": "Slack Error Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        592
+      ],
+      "webhookId": "4ee800ff-f70a-43dc-bc2f-ee46a568060b",
+      "credentials": {
+        "slackApi": {
+          "id": "nRqJc82sbXeAY4QB",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Ingest\nReceives Slack message events via webhook.\n\n**Setup:** After activating, copy the webhook URL and update your Slack App manifest request_url. Bot must be invited to the watched channel.",
+        "height": 368,
+        "color": 4
+      },
+      "id": "4e08a71c-c215-4643-a9af-f934ddfc65c8",
+      "name": "Sticky Note Ingest",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Filter\nPasses only human messages (no bot_id, no subtype). Handles Slack URL verification challenge on first setup.",
+        "color": 4
+      },
+      "id": "989e8c41-9918-40a9-8a0a-56319a58615c",
+      "name": "Sticky Note Filter",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## AI Agent\nUses GPT-4o-mini (OpenAI) — deliberate choice, team has OpenAI license.\n\nHandles both specific project lookups and broad natural language queries. Output field: $json.output",
+        "color": 4
+      },
+      "id": "71749f49-cb96-4d4e-ac75-a36fdff843b2",
+      "name": "Sticky Note Agent",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        416,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Error Handling\nCatches all workflow failures and posts to #project-questions-errors.\n\n**TODO:** Ensure bot is invited to #project-questions-errors before activating.",
+        "color": 3
+      },
+      "id": "bbcc716a-9d90-4679-884e-389cf0a309f3",
+      "name": "Sticky Note Error",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        592
+      ],
+      "id": "403d1e25-18b8-4ca1-a2bd-efe4b42f5567",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "FTYpddvbfQHz5mtv",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Slack Event Trigger": {
+      "main": [
+        [
+          {
+            "node": "Handle URL Verification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle URL Verification": {
+      "main": [
+        [
+          {
+            "node": "Respond to Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignore Bot Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ignore Bot Messages": {
+      "main": [
+        [
+          {
+            "node": "Fetch Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Format Sheet Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Sheet Data": {
+      "main": [
+        [
+          {
+            "node": "Project Status Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Project Status Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply in Thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply in Thread": {
+      "main": [
+        [
+          {
+            "node": "Respond to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Slack Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Project Status Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d241a1bd-e0dc-4a37-847b-4368efb0a7d3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a9ac3751a35ca86e82e8736b8e2cec137adea92490698036cdb4ecc31f9607db"
+  },
+  "nodeGroups": [],
+  "id": "Pr20TFpVD3pxD1ip",
+  "tags": []
+}
