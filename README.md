@@ -16,8 +16,10 @@ project data, generate a structured status response using OpenAI, and ship with 
 <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/b2980bee-4d15-441f-951a-17324ed993c0" />
 
 # Demo 
-
+Path : assets/Slack Project Status Chat bot.mp4
+link: 
 # System Design
+Path: assets/SystemDesign.png
 
 # Setup_ Instructions
 
