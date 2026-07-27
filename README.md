@@ -13,11 +13,14 @@ We will address two major aspects while building AI Products:
 Platforms used -* n8n and slack *  for this workflow. Please follow the set up instruction provided in Setup_Instructions.md
 We will Build a production-style Slack Project Status Chatbot in n8n: ingest Slack events, validate requests, fetch and format Google Sheet
 project data, generate a structured status response using OpenAI, and ship with guardrails plus error alerts.
+**Guardrails** - URL Validation - to ensure only human messages hit the Agent's LLM. Preventing any bot URLs to penetrate through.
+                  Error handling - any issues in the workflow being reported back to a separate Slack channel gives more control to debug any uncertain issues.
+                  Scope - any queries pertaining to data that agent doesn't have access to will be politely declined - ensuring it doesn't hallucinate/ invent any                               metrics or data.
 <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/b2980bee-4d15-441f-951a-17324ed993c0" />
 
 # Demo 
-Path : assets/Slack Project Status Chat bot.mp4
-link: 
+![Demo](assets/SlackProjectStatus_Chatbot.mp4) 
+
 # System Design
 Path: assets/SystemDesign.png
 ![System Design](assets/SlackChatbotSystemDesign.png)
