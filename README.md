@@ -9,6 +9,7 @@ Buil an agentic workflow to assist PM/TPM in their day to day tasks by reducing 
 
 # Solution 
 We will address a major aspect while building AI Products: A Production scale solution usually spans among different systems/ environments , How to handle such distributed systems?  As a PM/TPM how important is the understanding of a good system design and AI architecutre enables a smoother development and deployment. (A clear and bigger picture).
+
 Platforms used -* n8n and slack *  for this workflow. Please follow the set up instruction provided in Setup_Instructions.md
 We will Build a production-style Slack Project Status Chatbot in n8n: ingest Slack events, validate requests, fetch and format Google Sheet
 project data, generate a structured status response using OpenAI, and ship with guardrails plus error alerts.
