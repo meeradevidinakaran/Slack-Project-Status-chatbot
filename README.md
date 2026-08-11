@@ -20,7 +20,7 @@ project data, generate a structured status response using OpenAI, and ship with 
 
 
 # System Design
-![System Design](assets/SlackChatbotSystemDesign.png)
+![System Design](assets/SlackchatbotSystemDesign.png)
 
 # Setup_ Instructions
 ![SetUp_Instructions](docs/SetUp_Instructions.md)
