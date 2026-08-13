@@ -25,11 +25,11 @@ project data, generate a structured status response using OpenAI, and ship with 
 # Setup_ Instructions
 ![SetUp_Instructions](docs/SetUp_Instructions.md)
 
-# Scaling Strategies 
-![Scaling_Strategy](docs/Scaling_Strategy.md)
-
 # Demo 
 https://github.com/user-attachments/assets/818d7f27-9f49-4bf7-b377-e3d069ad00d1
+
+# Scaling Strategies 
+Full implementation templates and production scaling strategies are maintained in a private repository; access for technical review is available upon request
 
 ![Demo](assets/SlackProjectStatus_Chatbot.mp4) 
 
